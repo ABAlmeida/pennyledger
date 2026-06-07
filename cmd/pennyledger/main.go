@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+
+	"github.com/ABAlmeida/pennyledger/internal/config"
 )
 
 func main() {
@@ -15,7 +17,8 @@ func main() {
 		_, _ = w.Write([]byte("ok\n"))
 	})
 
-	addr := ":8080"
+	settings := config.Load()
+	addr := settings.HTTPAddr
 	logger.Info("starting server", "addr", addr)
 
 	if err := http.ListenAndServe(addr, mux); err != nil {
