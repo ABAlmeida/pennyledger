@@ -10,6 +10,7 @@ import (
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	settings := config.Load()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +18,6 @@ func main() {
 		_, _ = w.Write([]byte("ok\n"))
 	})
 
-	settings := config.Load()
 	addr := settings.HTTPAddr
 	logger.Info("starting server", "addr", addr)
 

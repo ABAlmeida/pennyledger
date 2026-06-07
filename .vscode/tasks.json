@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run PennyLedger",
+            "type": "shell",
+            "command": "go run ./cmd/pennyledger",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "go test ./...",
+            "group": "test",
+            "problemMatcher": "$go"
+        },
+        {
+            "label": "Format",
+            "type": "shell",
+            "command": "go fmt ./...",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "go build -o ./bin/pennyledger.exe ./cmd/pennyledger",
+            "group": "build",
+            "problemMatcher": "$go"
+        }
+    ]
+}
