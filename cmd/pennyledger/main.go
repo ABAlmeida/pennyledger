@@ -13,7 +13,7 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	settings := config.Load()
 
-	router := httpapi.NewRouter()
+	router := httpapi.NewRouter(logger)
 
 	addr := settings.HTTPAddr
 	logger.Info("starting server", "addr", addr)
