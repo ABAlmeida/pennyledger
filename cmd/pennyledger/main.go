@@ -8,16 +8,28 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/ABAlmeida/pennyledger/internal/config"
 	"github.com/ABAlmeida/pennyledger/internal/httpapi"
+	"github.com/ABAlmeida/pennyledger/internal/postgres"
 )
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	settings := config.Load()
 
-	router := httpapi.NewRouter(logger)
+	ctx, cancelStartup := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelStartup()
+
+	db, err := postgres.Connect(ctx, settings.DatabaseURL)
+	if err != nil {
+		logger.Error("database connection failed", "error", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	router := httpapi.NewRouter(logger, db)
 
 	server := &http.Server{
 		Addr:    settings.HTTPAddr,

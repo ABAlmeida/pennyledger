@@ -40,3 +40,19 @@ func TestLoadUsesShutdownTimeoutFromEnvironment(t *testing.T) {
 		t.Fatalf("expected ShutdownTimeout to be 10s, got %q", settings.ShutdownTimeout)
 	}
 }
+
+func TestLoadUsesDefaultDatabaseURL(t *testing.T) {
+	t.Setenv("DATABASE_URL", "")
+	settings := Load()
+	if settings.DatabaseURL != "" {
+		t.Fatalf("expected DatabaseURL to be default, got %q", settings.DatabaseURL)
+	}
+}
+
+func TestLoadUsesDatabaseURLFromEnvironment(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://user:password@localhost:5432/mydb?sslmode=disable")
+	settings := Load()
+	if settings.DatabaseURL != "postgres://user:password@localhost:5432/mydb?sslmode=disable" {
+		t.Fatalf("expected DatabaseURL to be from environment, got %q", settings.DatabaseURL)
+	}
+}
