@@ -126,6 +126,30 @@ func TestCreateAccountReturnsBadRequestForEmptyOwnerName(t *testing.T) {
 	}
 }
 
+func TestCreateAccountReturnsBadRequestForNegativeOpeningBalance(t *testing.T) {
+	service := &fakeHTTPAccountService{
+		createErr: accounts.ErrOpeningBalanceNegative,
+	}
+
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/accounts",
+		strings.NewReader(`{"owner_name":"Alice","opening_balance_pence":-100}`),
+	)
+	response := httptest.NewRecorder()
+
+	createAccountHandler(service).ServeHTTP(response, request)
+
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, response.Code)
+	}
+
+	expectedBodyResponse := "opening_balance_pence cannot be negative\n"
+	if response.Body.String() != expectedBodyResponse {
+		t.Fatalf("expected error message %q, got %q", expectedBodyResponse, response.Body.String())
+	}
+}
+
 func TestCreateAccountReturnsInternalServerErrorForServiceError(t *testing.T) {
 	service := &fakeHTTPAccountService{
 		createErr: errors.New("database failed"),

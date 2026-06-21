@@ -15,7 +15,8 @@ type accountService interface {
 }
 
 type createAccountRequest struct {
-	OwnerName string `json:"owner_name"`
+	OwnerName           string `json:"owner_name"`
+	OpeningBalancePence int64  `json:"opening_balance_pence"`
 }
 
 type accountResponse struct {
@@ -38,12 +39,20 @@ func createAccountHandler(service accountService) http.HandlerFunc {
 		}
 
 		account, err := service.CreateAccount(r.Context(), accounts.CreateAccountInput{
-			OwnerName: request.OwnerName,
+			OwnerName:           request.OwnerName,
+			OpeningBalancePence: request.OpeningBalancePence,
 		})
+
 		if errors.Is(err, accounts.ErrOwnerNameRequired) {
 			http.Error(w, "owner_name is required", http.StatusBadRequest)
 			return
 		}
+
+		if errors.Is(err, accounts.ErrOpeningBalanceNegative) {
+			http.Error(w, "opening_balance_pence cannot be negative", http.StatusBadRequest)
+			return
+		}
+
 		if err != nil {
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return

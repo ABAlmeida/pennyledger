@@ -23,7 +23,11 @@ func (s *Service) CreateAccount(ctx context.Context, input CreateAccountInput) (
 		return Account{}, ErrOwnerNameRequired
 	}
 
-	return s.store.Create(ctx, uuid.NewString(), ownerName)
+	if input.OpeningBalancePence < 0 {
+		return Account{}, ErrOpeningBalanceNegative
+	}
+
+	return s.store.Create(ctx, uuid.NewString(), ownerName, input.OpeningBalancePence)
 }
 
 func (s *Service) GetAccountByID(ctx context.Context, id string) (Account, error) {

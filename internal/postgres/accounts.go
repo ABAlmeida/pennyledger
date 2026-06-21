@@ -19,14 +19,14 @@ func NewAccountStore(pool *pgxpool.Pool) *AccountStore {
 	}
 }
 
-func (s *AccountStore) Create(ctx context.Context, id string, ownerName string) (accounts.Account, error) {
+func (s *AccountStore) Create(ctx context.Context, id string, ownerName string, openingBalancePence int64) (accounts.Account, error) {
 	var account accounts.Account
 
 	err := s.pool.QueryRow(ctx, `
-		INSERT INTO accounts (id, owner_name)
-		VALUES ($1, $2)
+		INSERT INTO accounts (id, owner_name, balance_pence)
+		VALUES ($1, $2, $3)
 		RETURNING id::text, owner_name, currency, balance_pence, status, created_at, updated_at
-	`, id, ownerName).Scan(
+	`, id, ownerName, openingBalancePence).Scan(
 		&account.ID,
 		&account.OwnerName,
 		&account.Currency,

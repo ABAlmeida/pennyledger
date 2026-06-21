@@ -6,15 +6,17 @@ import (
 )
 
 type fakeStore struct {
-	createdOwnerName string
-	createAccount    Account
-	createErr        error
-	getAccount       Account
-	getErr           error
+	createdOwnerName           string
+	createdOpeningBalancePence int64
+	createAccount              Account
+	createErr                  error
+	getAccount                 Account
+	getErr                     error
 }
 
-func (f *fakeStore) Create(ctx context.Context, id string, ownerName string) (Account, error) {
+func (f *fakeStore) Create(ctx context.Context, id string, ownerName string, openingBalancePence int64) (Account, error) {
 	f.createdOwnerName = ownerName
+	f.createdOpeningBalancePence = openingBalancePence
 	return f.createAccount, f.createErr
 }
 
@@ -52,14 +54,29 @@ func TestCreateAccountTrimsOwnerName(t *testing.T) {
 	}
 }
 
+func TestCreateAccountRejectsNegativeOpeningBalance(t *testing.T) {
+	ownerName := "  Fake Name  "
+	store := fakeStore{}
+	service := NewService(&store)
+	_, err := service.CreateAccount(t.Context(), CreateAccountInput{
+		OwnerName:           ownerName,
+		OpeningBalancePence: -100,
+	})
+
+	if err != ErrOpeningBalanceNegative {
+		t.Fatalf("expected error for negative opening balance, got nil")
+	}
+}
+
 func TestCreateAccountCallsStoreAndReturnsAccount(t *testing.T) {
 	ownerName := "Fake Name"
 	store := fakeStore{
-		createAccount: Account{ID: "1", OwnerName: ownerName, Currency: "GBP", BalancePence: 0},
+		createAccount: Account{ID: "1", OwnerName: ownerName, Currency: "GBP", BalancePence: 100},
 	}
 	service := NewService(&store)
 	account, err := service.CreateAccount(t.Context(), CreateAccountInput{
-		OwnerName: ownerName,
+		OwnerName:           ownerName,
+		OpeningBalancePence: 100,
 	})
 
 	if err != nil {
@@ -74,8 +91,12 @@ func TestCreateAccountCallsStoreAndReturnsAccount(t *testing.T) {
 		t.Fatalf("expected account currency to be 'GBP', got %q", account.Currency)
 	}
 
-	if account.BalancePence != 0 {
-		t.Fatalf("expected account balance to be 0, got %d", account.BalancePence)
+	if account.BalancePence != 100 {
+		t.Fatalf("expected account balance to be 100, got %d", account.BalancePence)
+	}
+
+	if store.createdOpeningBalancePence != 100 {
+		t.Fatalf("expected opening balance %d, got %d", 100, store.createdOpeningBalancePence)
 	}
 }
 
