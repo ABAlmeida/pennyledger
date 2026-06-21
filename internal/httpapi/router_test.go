@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ABAlmeida/pennyledger/internal/accounts"
 )
 
 type fakeReadinessChecker struct {
@@ -17,9 +19,19 @@ func (f fakeReadinessChecker) Ping(ctx context.Context) error {
 	return f.err
 }
 
+type fakeAccountService struct{}
+
+func (f fakeAccountService) CreateAccount(ctx context.Context, input accounts.CreateAccountInput) (accounts.Account, error) {
+	return accounts.Account{}, nil
+}
+
+func (f fakeAccountService) GetAccountByID(ctx context.Context, id string) (accounts.Account, error) {
+	return accounts.Account{}, nil
+}
+
 func TestHealthzReturnsOk(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	router := NewRouter(logger, fakeReadinessChecker{})
+	router := NewRouter(logger, fakeReadinessChecker{}, fakeAccountService{})
 
 	request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
 	response := httptest.NewRecorder()
@@ -37,7 +49,7 @@ func TestHealthzReturnsOk(t *testing.T) {
 
 func TestReadyzReturnsOkWhenDatabaseIsReachable(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	router := NewRouter(logger, fakeReadinessChecker{})
+	router := NewRouter(logger, fakeReadinessChecker{}, fakeAccountService{})
 
 	request := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	response := httptest.NewRecorder()
@@ -55,7 +67,7 @@ func TestReadyzReturnsOkWhenDatabaseIsReachable(t *testing.T) {
 
 func TestReadyzReturnsServiceUnavailableWhenDatabaseIsUnreachable(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	router := NewRouter(logger, fakeReadinessChecker{err: io.ErrUnexpectedEOF})
+	router := NewRouter(logger, fakeReadinessChecker{err: io.ErrUnexpectedEOF}, fakeAccountService{})
 
 	request := httptest.NewRequest(http.MethodGet, "/readyz", nil)
 	response := httptest.NewRecorder()

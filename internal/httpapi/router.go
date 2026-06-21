@@ -11,11 +11,13 @@ type readinessChecker interface {
 	Ping(ctx context.Context) error
 }
 
-func NewRouter(logger *slog.Logger, checker readinessChecker) http.Handler {
+func NewRouter(logger *slog.Logger, checker readinessChecker, accountService accountService) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", healthzHandler)
 	mux.HandleFunc("GET /readyz", readyzHandler(checker))
+	mux.HandleFunc("POST /v1/accounts", createAccountHandler(accountService))
+	mux.HandleFunc("GET /v1/accounts/{id}", getAccountHandler(accountService))
 
 	return recoverMiddleware(logger)(
 		requestIDMiddleware(

@@ -5,6 +5,7 @@ go 1.26.4
 require (
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/jackc/pgx/v5 v5.10.0
+	github.com/google/uuid v1.6.0
 )
 
 require (

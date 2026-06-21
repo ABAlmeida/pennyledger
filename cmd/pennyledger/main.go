@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ABAlmeida/pennyledger/internal/accounts"
 	"github.com/ABAlmeida/pennyledger/internal/config"
 	"github.com/ABAlmeida/pennyledger/internal/httpapi"
 	"github.com/ABAlmeida/pennyledger/internal/postgres"
@@ -29,7 +30,10 @@ func main() {
 	}
 	defer db.Close()
 
-	router := httpapi.NewRouter(logger, db)
+	accountStore := postgres.NewAccountStore(db)
+	accountService := accounts.NewService(accountStore)
+
+	router := httpapi.NewRouter(logger, db, accountService)
 
 	server := &http.Server{
 		Addr:    settings.HTTPAddr,
